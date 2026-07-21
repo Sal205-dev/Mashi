@@ -53,14 +53,23 @@ Double-click **Detect Vector Changes** to open its parameter form. Fill in:
 - **Comparison dataset(s) (.shp or .geojson)** — you can select multiple files
 - **Output folder**
 - **Unchanged IoU threshold** (default 0.90)
-- **Minimum polygon area** (default 0, no filtering)
+- **Minimum polygon area in square meters** (default 0, no filtering)
+- **Area CRS** (default `EPSG:6933`, a global equal-area CRS) — both datasets
+  are reprojected here before comparison, so area figures are real and
+  consistent regardless of the input data's original CRS
 
 Click **Run**. Progress messages appear in the geoprocessing pane. For each
 comparison dataset, a subfolder named after it is created under the output
 folder containing `Added.geojson`, `Deleted.geojson`, `Modified.geojson`,
 `Changes.geojson`, and `Summary.csv`; `overall_summary.csv` sits at the top of
-the output folder.
+the output folder. All area figures (`old_area_sqkm`, `new_area_sqkm`,
+`area_diff_sqkm`, and the `total_*_sqkm` columns in `Summary.csv`) are in
+square kilometers.
 
 Only standalone `.shp` and `.geojson`/`.json` files are supported — feature
 classes stored inside a File Geodatabase are not (this tool never reads or
 writes a geodatabase).
+
+If you already added the toolbox before the Area CRS parameter was added, it
+should pick it up automatically the next time you open the tool's parameter
+form (ArcGIS Pro re-reads `.pyt` files each time), no need to re-add it.

@@ -44,12 +44,22 @@ output/
 Unchanged polygons are computed internally (for the Summary.csv counts) but
 are not written to their own GeoJSON layer.
 
+Every area figure — `old_area_sqkm`, `new_area_sqkm`, `area_diff_sqkm` in
+`Changes.geojson`/`change_type` layers, and `total_old_area_sqkm`,
+`total_new_area_sqkm`, `total_area_diff_sqkm` in `Summary.csv` — is in
+**square kilometers**, regardless of the input data's original CRS (see "How
+matching works" below for why).
+
 ## How matching works
 
-1. Both the reference and each comparison dataset are cleaned: invalid
-   geometries are repaired, empty/null/non-polygonal rows are dropped, the
-   comparison dataset is reprojected to the reference's CRS if needed, and
-   optional sliver polygons below `--min-area` are removed.
+1. Both datasets are reprojected into `--area-crs` (default `EPSG:6933`, a
+   global equal-area CRS in meters), then cleaned: invalid geometries are
+   repaired, empty/null/non-polygonal rows are dropped, and sliver polygons
+   below `--min-area` (in square meters) are removed. Reprojecting first
+   means area and overlap figures are always real, consistent ground
+   measurements — computing area directly on unprojected degree coordinates
+   (e.g. plain GeoJSON in EPSG:4326) is not meaningful, which is why this
+   step always runs.
 2. An STRtree spatial index is built over the comparison geometries. For
    every reference polygon, all intersecting comparison polygons are found
    and the one with the highest Intersection-over-Union (IoU) is chosen as
@@ -59,6 +69,8 @@ are not written to their own GeoJSON layer.
    - No comparison counterpart -> **Deleted**
    - IoU >= `--threshold` (default 0.90) -> **Unchanged**
    - IoU < `--threshold` -> **Modified**
+4. Areas are converted from the working CRS's square meters to square
+   kilometers for every output file.
 
 ## Options
 
@@ -68,7 +80,8 @@ are not written to their own GeoJSON layer.
 | `--compare` | required | One or more comparison GeoJSON/Shapefile paths |
 | `--output` | `output` | Output directory |
 | `--threshold` | `0.90` | IoU cutoff between Unchanged and Modified |
-| `--min-area` | `0.0` | Minimum polygon area to keep; `0` disables sliver filtering |
+| `--min-area` | `0.0` | Minimum polygon area in square meters to keep; `0` disables sliver filtering |
+| `--area-crs` | `EPSG:6933` | CRS both datasets are reprojected into before matching/area computation |
 
 ## Project layout
 

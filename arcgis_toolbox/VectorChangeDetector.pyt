@@ -24,7 +24,11 @@ class DetectVectorChanges:
             "comparison datasets using IoU-based matching (feature IDs are never "
             "used). Writes Added/Deleted/Modified/Changes GeoJSON layers and a "
             "Summary.csv per comparison dataset, plus an overall_summary.csv "
-            "across all comparisons. Only .shp and .geojson files are supported."
+            "across all comparisons. Areas are reported in square kilometers, "
+            "after both datasets are reprojected into the Area CRS parameter "
+            "(a global equal-area CRS by default) so figures are meaningful "
+            "regardless of the input data's original CRS. Only .shp and "
+            ".geojson files are supported."
         )
         self.canRunInBackground = False
 
@@ -71,7 +75,7 @@ class DetectVectorChanges:
         threshold.value = 0.90
 
         min_area = arcpy.Parameter(
-            displayName="Minimum polygon area (0 = no filtering)",
+            displayName="Minimum polygon area in square meters (0 = no filtering)",
             name="min_area",
             datatype="GPDouble",
             parameterType="Optional",
@@ -79,7 +83,16 @@ class DetectVectorChanges:
         )
         min_area.value = 0.0
 
-        return [reference, compare, output_folder, threshold, min_area]
+        area_crs = arcpy.Parameter(
+            displayName="Area CRS (both datasets are reprojected here before comparison)",
+            name="area_crs",
+            datatype="GPString",
+            parameterType="Optional",
+            direction="Input",
+        )
+        area_crs.value = "EPSG:6933"
+
+        return [reference, compare, output_folder, threshold, min_area, area_crs]
 
     def isLicensed(self) -> bool:
         """This tool requires no special ArcGIS Pro license."""
@@ -125,6 +138,7 @@ class DetectVectorChanges:
         output_dir = parameters[2].valueAsText
         threshold = float(parameters[3].valueAsText) if parameters[3].valueAsText else 0.90
         min_area = float(parameters[4].valueAsText) if parameters[4].valueAsText else 0.0
+        area_crs = parameters[5].valueAsText if parameters[5].valueAsText else "EPSG:6933"
 
         output_root = Path(output_dir)
         output_root.mkdir(parents=True, exist_ok=True)
@@ -143,6 +157,7 @@ class DetectVectorChanges:
                 compare_gdf=compare_gdf,
                 unchanged_iou_threshold=threshold,
                 min_area=min_area,
+                area_crs=area_crs,
             )
 
             file_output_dir = output_root / compare_name

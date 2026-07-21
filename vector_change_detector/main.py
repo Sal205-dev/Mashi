@@ -11,7 +11,7 @@ from vector_change_detector.core.exporter import (
     export_summary_csv,
 )
 from vector_change_detector.core.loader import load_vector_file
-from vector_change_detector.core.pipeline import run_comparison
+from vector_change_detector.core.pipeline import DEFAULT_AREA_CRS, run_comparison
 from vector_change_detector.utils.logging_config import configure_logging
 
 logger = logging.getLogger(__name__)
@@ -59,8 +59,20 @@ def parse_args() -> argparse.Namespace:
         type=float,
         default=0.0,
         help=(
-            "Minimum polygon area to keep, in CRS units; smaller sliver "
-            "polygons are dropped before comparison (default: 0, no filtering)."
+            "Minimum polygon area to keep, in square meters (measured after "
+            "reprojecting to --area-crs); smaller sliver polygons are dropped "
+            "before comparison (default: 0, no filtering)."
+        ),
+    )
+    parser.add_argument(
+        "--area-crs",
+        default=DEFAULT_AREA_CRS,
+        help=(
+            "CRS both datasets are reprojected into before matching and "
+            "computing area, so area figures are always in real, consistent "
+            f"ground units regardless of the input CRS (default: {DEFAULT_AREA_CRS}, "
+            "a global equal-area CRS in meters). Output areas are reported in "
+            "square kilometers."
         ),
     )
     return parser.parse_args()
@@ -88,6 +100,7 @@ def main() -> None:
             compare_gdf=compare_gdf,
             unchanged_iou_threshold=args.threshold,
             min_area=args.min_area,
+            area_crs=args.area_crs,
         )
 
         file_output_dir = output_root / compare_name

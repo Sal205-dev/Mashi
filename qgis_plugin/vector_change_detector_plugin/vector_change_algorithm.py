@@ -3,9 +3,11 @@ from __future__ import annotations
 from pathlib import Path
 
 from qgis.core import (
+    QgsCoordinateReferenceSystem,
     QgsProcessing,
     QgsProcessingAlgorithm,
     QgsProcessingException,
+    QgsProcessingParameterCrs,
     QgsProcessingParameterFolderDestination,
     QgsProcessingParameterMultipleLayers,
     QgsProcessingParameterNumber,
@@ -13,6 +15,7 @@ from qgis.core import (
 )
 
 SUPPORTED_SUFFIXES = {".geojson", ".json", ".shp"}
+DEFAULT_AREA_CRS = "EPSG:6933"
 
 
 class DetectVectorChangesAlgorithm(QgsProcessingAlgorithm):
@@ -28,6 +31,7 @@ class DetectVectorChangesAlgorithm(QgsProcessingAlgorithm):
     OUTPUT = "OUTPUT"
     THRESHOLD = "THRESHOLD"
     MIN_AREA = "MIN_AREA"
+    AREA_CRS = "AREA_CRS"
 
     def createInstance(self) -> "DetectVectorChangesAlgorithm":
         """Return a new, unconfigured instance of this algorithm."""
@@ -57,7 +61,10 @@ class DetectVectorChangesAlgorithm(QgsProcessingAlgorithm):
             "never used). For each comparison layer, writes Added.geojson, "
             "Deleted.geojson, Modified.geojson, Changes.geojson, and Summary.csv "
             "into a subfolder of the output folder (named after that layer), plus "
-            "an overall_summary.csv across all comparisons.\n\n"
+            "an overall_summary.csv across all comparisons. Areas are reported in "
+            "square kilometers, after both datasets are reprojected into the "
+            "Area CRS parameter (a global equal-area CRS by default) so figures "
+            "are meaningful regardless of the input data's original CRS.\n\n"
             "Only file-based GeoJSON (.geojson/.json) and Shapefile (.shp) layers "
             "are supported.\n\n"
             "Requires the 'vector_change_detector' Python package (and its "
@@ -100,10 +107,17 @@ class DetectVectorChangesAlgorithm(QgsProcessingAlgorithm):
         self.addParameter(
             QgsProcessingParameterNumber(
                 self.MIN_AREA,
-                "Minimum polygon area (0 = no filtering)",
+                "Minimum polygon area in square meters (0 = no filtering)",
                 type=QgsProcessingParameterNumber.Double,
                 defaultValue=0.0,
                 minValue=0.0,
+            )
+        )
+        self.addParameter(
+            QgsProcessingParameterCrs(
+                self.AREA_CRS,
+                "Area CRS (both layers are reprojected here before comparison)",
+                defaultValue=QgsCoordinateReferenceSystem(DEFAULT_AREA_CRS),
             )
         )
 
@@ -163,6 +177,7 @@ class DetectVectorChangesAlgorithm(QgsProcessingAlgorithm):
         output_dir = self.parameterAsString(parameters, self.OUTPUT, context)
         threshold = self.parameterAsDouble(parameters, self.THRESHOLD, context)
         min_area = self.parameterAsDouble(parameters, self.MIN_AREA, context)
+        area_crs = self.parameterAsCrs(parameters, self.AREA_CRS, context).authid()
 
         if not compare_layers:
             raise QgsProcessingException("At least one comparison layer is required.")
@@ -190,6 +205,7 @@ class DetectVectorChangesAlgorithm(QgsProcessingAlgorithm):
                 compare_gdf=compare_gdf,
                 unchanged_iou_threshold=threshold,
                 min_area=min_area,
+                area_crs=area_crs,
             )
 
             file_output_dir = output_root / compare_name

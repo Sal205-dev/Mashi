@@ -72,14 +72,24 @@ Open **Processing Toolbox** (Processing menu, or `Ctrl+Alt+T`), find
 - **Comparison layer(s)** — one or more datasets to diff against the reference
 - **Output folder**
 - **Unchanged IoU threshold** (default 0.90)
-- **Minimum polygon area** (default 0, no filtering)
+- **Minimum polygon area in square meters** (default 0, no filtering)
+- **Area CRS** (default `EPSG:6933`, a global equal-area CRS) — both layers
+  are reprojected here before comparison, so area figures are real and
+  consistent regardless of the input data's original CRS
 
 Click **Run**. Progress and log messages appear in the algorithm dialog. For
 each comparison layer, a subfolder named after it is created under the output
 folder containing `Added.geojson`, `Deleted.geojson`, `Modified.geojson`,
 `Changes.geojson`, and `Summary.csv`; `overall_summary.csv` sits at the top of
 the output folder. Only file-based `.geojson`/`.json`/`.shp` layers are
-supported.
+supported. All area figures (`old_area_sqkm`, `new_area_sqkm`,
+`area_diff_sqkm`, and the `total_*_sqkm` columns in `Summary.csv`) are in
+square kilometers.
+
+If you already installed the plugin before the Area CRS parameter was added,
+you need to re-zip and reinstall it (step 2) — this was a change to the
+plugin's own code, not just the core package, so a `pip install` upgrade
+alone won't add the new parameter.
 
 ## Uninstall / update
 

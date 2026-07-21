@@ -66,14 +66,15 @@ def export_changes_layer(results_gdf: gpd.GeoDataFrame, output_dir: Path) -> Non
 
 
 def build_summary(results_gdf: gpd.GeoDataFrame) -> pd.DataFrame:
-    """Aggregate change counts and areas per change type.
+    """Aggregate change counts and areas (in square kilometers) per change type.
 
     Args:
-        results_gdf: Full change-detection result set from detector.detect_changes.
+        results_gdf: Full change-detection result set from pipeline.run_comparison,
+            carrying old_area_sqkm, new_area_sqkm, and area_diff_sqkm columns.
 
     Returns:
         A DataFrame with one row per ChangeType, containing count,
-        total_old_area, total_new_area, and total_area_diff.
+        total_old_area_sqkm, total_new_area_sqkm, and total_area_diff_sqkm.
     """
     rows = []
     for change_type in ChangeType:
@@ -82,9 +83,9 @@ def build_summary(results_gdf: gpd.GeoDataFrame) -> pd.DataFrame:
             {
                 "change_type": change_type.value,
                 "count": len(subset),
-                "total_old_area": subset["old_area"].sum(),
-                "total_new_area": subset["new_area"].sum(),
-                "total_area_diff": subset["area_diff"].sum(),
+                "total_old_area_sqkm": subset["old_area_sqkm"].sum(),
+                "total_new_area_sqkm": subset["new_area_sqkm"].sum(),
+                "total_area_diff_sqkm": subset["area_diff_sqkm"].sum(),
             }
         )
     return pd.DataFrame(rows)
@@ -124,7 +125,7 @@ def export_overall_summary(per_file_summaries: dict[str, pd.DataFrame], output_d
         row = {"compare_file": compare_name}
         for _, r in summary.iterrows():
             row[f"{r['change_type']}_count"] = r["count"]
-            row[f"{r['change_type']}_area_diff"] = r["total_area_diff"]
+            row[f"{r['change_type']}_area_diff_sqkm"] = r["total_area_diff_sqkm"]
         rows.append(row)
 
     overall = pd.DataFrame(rows)
