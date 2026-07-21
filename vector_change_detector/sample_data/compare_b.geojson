@@ -1,0 +1,9 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {"type": "Feature", "properties": {"id": 201, "name": "parcel_1"}, "geometry": {"type": "Polygon", "coordinates": [[[0, 0], [5, 0], [5, 5], [0, 5], [0, 0]]]}},
+    {"type": "Feature", "properties": {"id": 203, "name": "parcel_3"}, "geometry": {"type": "Polygon", "coordinates": [[[20, 0], [25, 0], [25, 5], [20, 5], [20, 0]]]}},
+    {"type": "Feature", "properties": {"id": 204, "name": "parcel_4"}, "geometry": {"type": "Polygon", "coordinates": [[[30, 0], [35, 0], [35, 5], [30, 5], [30, 0]]]}},
+    {"type": "Feature", "properties": {"id": 206, "name": "parcel_6_new"}, "geometry": {"type": "Polygon", "coordinates": [[[50, 0], [55, 0], [55, 5], [50, 5], [50, 0]]]}}
+  ]
+}
