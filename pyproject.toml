@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "vector-change-detector"
-version = "0.1.0"
+version = "0.2.0"
 description = "Spatial change detection between vector datasets (GeoJSON/Shapefile), matched by geometry rather than feature ID."
 requires-python = ">=3.9"
 dependencies = [
