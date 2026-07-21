@@ -5,6 +5,16 @@ Adds a **Detect Vector Changes** algorithm to the Processing Toolbox, under the
 `vector_change_detector` core pipeline used by the CLI — the geometry logic is
 identical.
 
+> **If you installed an earlier version of this plugin and got
+> `No module named 'vector_change_detector.core'` even after installing the
+> pip package correctly:** that was a real bug, now fixed. The plugin folder
+> used to be named `vector_change_detector`, the same name as the pip package
+> — QGIS loads plugins as top-level Python packages, so the plugin folder
+> itself was shadowing the real installed package, and Python always found
+> the (core-less) plugin first. The plugin folder is now named
+> `vector_change_detector_plugin` to avoid the collision. **You must uninstall
+> the old plugin before installing the new zip** — see step 2 below.
+
 ## 1. Install the core package into QGIS's Python environment (one-time)
 
 QGIS ships its own Python; the plugin needs the `vector-change-detector`
@@ -34,16 +44,23 @@ QGIS.app bundle):**
 
 ## 2. Install the plugin
 
-1. Zip the `qgis_plugin/vector_change_detector` folder itself (so the zip's
-   root contains `metadata.txt`, `__init__.py`, etc. directly — not nested
-   inside another folder).
+0. **If you installed any earlier version of this plugin**, remove it first:
+   **Plugins > Manage and Install Plugins > Installed**, select "Vector
+   Change Detector", click **Uninstall Plugin**, then fully close QGIS.
+   (This matters — otherwise the old, colliding `vector_change_detector`
+   folder stays in your QGIS profile's plugins directory and keeps shadowing
+   the real package no matter what you install afterwards.)
+1. Zip the `qgis_plugin/vector_change_detector_plugin` folder itself (so the
+   zip's root contains `metadata.txt`, `__init__.py`, etc. directly — not
+   nested inside another folder).
    - Windows PowerShell, from the repo root:
      ```powershell
-     Compress-Archive -Path qgis_plugin\vector_change_detector -DestinationPath vector_change_detector.zip
+     Compress-Archive -Path qgis_plugin\vector_change_detector_plugin -DestinationPath vector_change_detector_plugin.zip
      ```
 2. In QGIS: **Plugins > Manage and Install Plugins > Install from ZIP**,
-   browse to `vector_change_detector.zip`, click **Install Plugin**.
+   browse to `vector_change_detector_plugin.zip`, click **Install Plugin**.
 3. If prompted, enable the plugin in the **Installed** tab.
+4. Fully close and reopen QGIS once, to guarantee a clean Python process.
 
 ## 3. Run it
 
