@@ -58,6 +58,30 @@ def keep_polygonal_geometries(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     return gdf.loc[polygonal_mask].reset_index(drop=True)
 
 
+def remove_duplicate_geometries(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
+    """Drop rows whose geometry exactly duplicates an earlier row's.
+
+    Real-world administrative/cadastral datasets (especially ones assembled
+    from multiple source files) sometimes contain the same polygon more than
+    once. Without deduplication, the matcher can only pair one copy with its
+    counterpart in the other dataset; any extra copies have nothing left to
+    match against and are misclassified as Added or Deleted even though the
+    underlying feature is genuinely unchanged.
+
+    Args:
+        gdf: Input GeoDataFrame.
+
+    Returns:
+        A GeoDataFrame with exact-duplicate geometries removed (the first
+        occurrence of each is kept), index reset.
+    """
+    duplicate_mask = gdf.geometry.duplicated()
+    dropped = int(duplicate_mask.sum())
+    if dropped:
+        logger.warning("Dropping %d duplicate geometries", dropped)
+    return gdf.loc[~duplicate_mask].reset_index(drop=True)
+
+
 def remove_sliver_polygons(gdf: gpd.GeoDataFrame, min_area: float) -> gpd.GeoDataFrame:
     """Drop polygons whose area falls below a minimum threshold.
 
@@ -110,8 +134,8 @@ def clean_geometries(
 
     Applies, in order: keep only polygonal geometries, drop empty/null
     geometries, repair invalid geometries, drop any empty/null results from
-    repair, optionally reproject to a common CRS, and drop sliver polygons
-    below min_area.
+    repair, drop exact-duplicate geometries, optionally reproject to a
+    common CRS, and drop sliver polygons below min_area.
 
     Args:
         gdf: Input GeoDataFrame.
@@ -127,6 +151,7 @@ def clean_geometries(
     gdf = fix_invalid_geometries(gdf)
     gdf = keep_polygonal_geometries(gdf)
     gdf = remove_empty_geometries(gdf)
+    gdf = remove_duplicate_geometries(gdf)
     if target_crs is not None:
         gdf = reproject_to_crs(gdf, target_crs)
     gdf = remove_sliver_polygons(gdf, min_area)

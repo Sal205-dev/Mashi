@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import geopandas as gpd
+from shapely.geometry import Polygon
+
 from vector_change_detector.core.exporter import (
     export_category_layers,
     export_changes_layer,
@@ -48,3 +51,25 @@ def test_full_pipeline_on_sample_data_compare_b(tmp_path: Path):
     assert counts["Deleted"] == 1
     assert counts["Modified"] == 0
     assert counts["Unchanged"] == 3
+
+
+def test_run_comparison_does_not_misclassify_a_duplicated_unchanged_feature_as_added(tmp_path: Path):
+    unchanged = Polygon([(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)])
+    reference = gpd.GeoDataFrame({"id": [1]}, geometry=[unchanged], crs="EPSG:3857")
+    # The comparison dataset contains an exact duplicate of the one unchanged
+    # feature -- a common real-world data quality issue (e.g. a polygon
+    # recorded twice after merging multiple source files). Without
+    # deduplication, only one copy can be matched, and the extra copy is
+    # misclassified as Added even though nothing actually changed.
+    compare = gpd.GeoDataFrame(
+        {"id": [101, 102]},
+        geometry=[unchanged, unchanged],
+        crs="EPSG:3857",
+    )
+
+    results = run_comparison(reference, compare, unchanged_iou_threshold=0.90, area_crs="EPSG:3857")
+    summary = export_summary_csv(results, tmp_path)
+
+    counts = dict(zip(summary["change_type"], summary["count"]))
+    assert counts["Added"] == 0
+    assert counts["Unchanged"] == 1

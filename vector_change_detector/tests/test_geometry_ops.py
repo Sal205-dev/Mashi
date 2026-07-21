@@ -6,6 +6,7 @@ from shapely.geometry import Polygon
 from vector_change_detector.core.geometry_ops import (
     clean_geometries,
     fix_invalid_geometries,
+    remove_duplicate_geometries,
     remove_empty_geometries,
     remove_sliver_polygons,
 )
@@ -51,6 +52,22 @@ def test_remove_sliver_polygons_disabled_when_min_area_zero():
     result = remove_sliver_polygons(gdf, min_area=0.0)
 
     assert len(result) == 1
+
+
+def test_remove_duplicate_geometries_keeps_first_occurrence():
+    a = Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)])
+    duplicate_of_a = Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)])
+    b = Polygon([(5, 5), (6, 5), (6, 6), (5, 6), (5, 5)])
+    gdf = gpd.GeoDataFrame(
+        {"id": [1, 2, 3]},
+        geometry=[a, duplicate_of_a, b],
+        crs="EPSG:4326",
+    )
+
+    result = remove_duplicate_geometries(gdf)
+
+    assert len(result) == 2
+    assert list(result["id"]) == [1, 3]
 
 
 def test_clean_geometries_reprojects_to_target_crs():

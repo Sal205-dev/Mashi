@@ -54,12 +54,16 @@ matching works" below for why).
 
 1. Both datasets are reprojected into `--area-crs` (default `EPSG:6933`, a
    global equal-area CRS in meters), then cleaned: invalid geometries are
-   repaired, empty/null/non-polygonal rows are dropped, and sliver polygons
-   below `--min-area` (in square meters) are removed. Reprojecting first
-   means area and overlap figures are always real, consistent ground
-   measurements — computing area directly on unprojected degree coordinates
-   (e.g. plain GeoJSON in EPSG:4326) is not meaningful, which is why this
-   step always runs.
+   repaired, empty/null/non-polygonal rows are dropped, exact-duplicate
+   geometries within each dataset are dropped (keeping one copy — without
+   this, a polygon recorded twice in one file, a common issue in datasets
+   merged from multiple sources, would leave its extra copy unmatched and
+   misclassified as Added/Deleted even though nothing really changed), and
+   sliver polygons below `--min-area` (in square meters) are removed.
+   Reprojecting first means area and overlap figures are always real,
+   consistent ground measurements — computing area directly on unprojected
+   degree coordinates (e.g. plain GeoJSON in EPSG:4326) is not meaningful,
+   which is why this step always runs.
 2. An STRtree spatial index is built over the comparison geometries. For
    every reference polygon, all intersecting comparison polygons are found
    and the one with the highest Intersection-over-Union (IoU) is chosen as
