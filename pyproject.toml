@@ -1,2 +1,28 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vector-change-detector"
+version = "0.1.0"
+description = "Spatial change detection between vector datasets (GeoJSON/Shapefile), matched by geometry rather than feature ID."
+requires-python = ">=3.9"
+dependencies = [
+    "geopandas>=0.14",
+    "shapely>=2.0",
+    "pyproj>=3.6",
+    "fiona>=1.9",
+    "rtree>=1.0",
+    "pandas>=2.0",
+    "numpy>=1.26",
+]
+
+[project.scripts]
+vector-change-detector = "vector_change_detector.main:main"
+
+[tool.setuptools.packages.find]
+include = ["vector_change_detector*"]
+exclude = ["vector_change_detector.tests*"]
+
 [tool.pytest.ini_options]
 testpaths = ["vector_change_detector/tests"]

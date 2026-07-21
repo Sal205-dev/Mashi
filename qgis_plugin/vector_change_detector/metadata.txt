@@ -1,0 +1,15 @@
+[general]
+name=Vector Change Detector
+qgisMinimumVersion=3.16
+description=Detect spatial changes (Added/Deleted/Modified/Unchanged) between a reference polygon layer and one or more comparison layers, matched by geometry (IoU) rather than feature ID.
+version=0.1.0
+author=Vector Change Detector
+email=noreply@example.com
+about=Adds a "Detect Vector Changes" algorithm to the Processing Toolbox under the "Vector Change Detector" group. Requires the vector-change-detector Python package (and geopandas/shapely/pyproj/fiona/rtree) to be installed in QGIS's Python environment; see the plugin's README for setup instructions.
+tracker=
+repository=
+category=Analysis
+tags=change detection,vector,polygon,geoprocessing,comparison,geojson,shapefile
+hasProcessingProvider=yes
+experimental=False
+deprecated=False

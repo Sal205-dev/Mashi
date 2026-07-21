@@ -89,8 +89,29 @@ vector_change_detector/
 ```
 
 Each `core/` module is independent of the CLI and has no I/O side effects
-beyond what its name implies, so the same pipeline can later be reused from
-a GUI, a QGIS plugin, or a web backend without modification.
+beyond what its name implies, so the same pipeline is reused as-is by the
+QGIS and ArcGIS Pro plugins below, with no duplicated logic.
+
+## GIS software plugins
+
+The same tested `core/` pipeline is also available inside QGIS and ArcGIS
+Pro, as thin wrappers:
+
+- **QGIS** — a Processing Toolbox algorithm ("Detect Vector Changes"). See
+  [`qgis_plugin/README.md`](qgis_plugin/README.md) for install steps.
+- **ArcGIS Pro** — a Python Toolbox (`.pyt`) tool. See
+  [`arcgis_toolbox/README.md`](arcgis_toolbox/README.md) for install steps.
+
+Both require the `vector-change-detector` package to be installed into that
+software's own Python environment first:
+
+```bash
+pip install /path/to/mashi
+```
+
+(this repo root contains `pyproject.toml`, so `pip install .` from here also
+works, and additionally gives you a `vector-change-detector` console command
+equivalent to `python -m vector_change_detector.main`)
 
 ## Tests
 
